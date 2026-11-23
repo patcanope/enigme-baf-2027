@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Énigme 4 - Balayage des fraises</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    
+    /* Bandeau d'interface en bas */
+    #hud {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0, 102, 51, 0.92); color: white; padding: 14px 22px;
+      border-radius: 20px; text-align: center; z-index: 10;
+      width: 85%; max-width: 380px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      transition: background 0.4s ease;
+    }
+    #titre-hud { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
+    #compteur { font-size: 14px; opacity: 0.95; }
+
+    /* Pastilles de progression des 4 fraises */
+    .pastilles { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+    .pastille {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); border: 2px solid white;
+      transition: all 0.3s ease;
+    }
+    .pastille.trouvee { background: #FFEB3B; transform: scale(1.2); border-color: #FFEB3B; }
+
+    /* Écran final révélant le chiffre 4 */
+    #ecran-victoire {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); background: rgba(211, 47, 47, 0.95);
+      color: white; padding: 30px 40px; border-radius: 25px;
+      text-align: center; z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 4px solid #FFEB3B;
+    }
+    #chiffre-final { font-size: 90px; font-weight: 900; line-height: 1; margin: 10px 0; color: #FFEB3B; }
+  </style>
+</head>
+<body>
+
+  <!-- Interface de progression -->
+  <div id="hud">
+    <div id="titre-hud">Balayez le poster avec votre caméra</div>
+    <div id="compteur">Trouvez les 4 fraises secrètes (<span id="score">0</span>/4)</div>
+    <div class="pastilles">
+      <div class="pastille" id="p-0"></div>
+      <div class="pastille" id="p-1"></div>
+      <div class="pastille" id="p-2"></div>
+      <div class="pastille" id="p-3"></div>
+    </div>
+  </div>
+
+  <!-- Fenêtre de révélation du chiffre 4 -->
+  <div id="ecran-victoire">
+    <div style="font-size: 18px; font-weight: bold;">4 FRAISES RELIÉES !</div>
+    <div id="chiffre-final">4</div>
+    <div style="font-size: 15px;">Notez ce dernier chiffre sur votre bulletin.</div>
+  </div>
+
+  <!-- Scène MindAR configurée pour suivre jusqu'à 4 cibles -->
+  <a-scene 
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 4; autoStart: true; uiScanning: yes;" 
+    color-space="sRGB" 
+    renderer="colorManagement: true" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false">
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- CIBLE 0 : Fraise 1 -->
+    <a-entity id="cible-0" mindar-image-target="targetIndex: 0">
+      <a-ring radius-inner="0.3" radius-outer="0.45" color="#FFEB3B"
+              animation="property: scale; to: 1.2 1.2 1; dir: alternate; dur: 600; loop: true"></a-ring>
+    </a-entity>
+
+    <!-- CIBLE 1 : Fraise 2 -->
+    <a-entity id="cible-1" mindar-image-target="targetIndex: 1">
+      <a-ring radius-inner="0.3" radius-outer="0.45" color="#FFEB3B"
+              animation="property: scale; to: 1.2 1.2 1; dir: alternate; dur: 600; loop: true"></a-ring>
+    </a-entity>
+
+    <!-- CIBLE 2 : Fraise 3 -->
+    <a-entity id="cible-2" mindar-image-target="targetIndex: 2">
+      <a-ring radius-inner="0.3" radius-outer="0.45" color="#FFEB3B"
+              animation="property: scale; to: 1.2 1.2 1; dir: alternate; dur: 600; loop: true"></a-ring>
+    </a-entity>
+
+    <!-- CIBLE 3 : Fraise 4 -->
+    <a-entity id="cible-3" mindar-image-target="targetIndex: 3">
+      <a-ring radius-inner="0.3" radius-outer="0.45" color="#FFEB3B"
+              animation="property: scale; to: 1.2 1.2 1; dir: alternate; dur: 600; loop: true"></a-ring>
+    </a-entity>
+
+  </a-scene>
+
+  <script>
+    // Mémorisation des fraises déjà scannées (false au départ)
+    const etatFraises = [false, false, false, false];
+
+    // Écouteur sur chacune des 4 cibles
+    for (let i = 0; i < 4; i++) {
+      const entite = document.querySelector(`#cible-${i}`);
+      
+      entite.addEventListener("targetFound", () => {
+        if (!etatFraises[i]) {
+          etatFraises[i] = true;
+          
+          // Allume la pastille correspondante
+          document.querySelector(`#p-${i}`).classList.add("trouvee");
+          
+          // Vibration légère sur mobile (si supportée)
+          if (navigator.vibrate) navigator.vibrate(100);
+
+          // Mise à jour du compteur
+          const totalTrouve = etatFraises.filter(Boolean).length;
+          document.querySelector("#score").innerText = totalTrouve;
+
+          // Si les 4 fraises ont été balayées, affiche le chiffre 4
+          if (totalTrouve === 4) {
+            setTimeout(() => {
+              document.querySelector("#hud").style.display = "none";
+              document.querySelector("#ecran-victoire").style.display = "block";
+            }, 600);
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
