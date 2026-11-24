@@ -20,15 +20,6 @@
     #titre-hud { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
     #compteur { font-size: 14px; opacity: 0.95; }
 
-    /* Pastilles de progression des 4 fraises */
-    .pastilles { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-    .pastille {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: rgba(255,255,255,0.25); border: 2px solid white;
-      transition: all 0.3s ease;
-    }
-    .pastille.trouvee { background: #FFEB3B; transform: scale(1.2); border-color: #FFEB3B; }
-
     /* Écran final révélant le chiffre 4 */
     #ecran-victoire {
       display: none; position: fixed; top: 50%; left: 50%;
@@ -42,16 +33,10 @@
 </head>
 <body>
 
-  <!-- Interface de progression -->
+  <!-- Interface de consigne sans pastilles ni compteur -->
   <div id="hud">
     <div id="titre-hud">Balayez le poster avec votre caméra</div>
-    <div id="compteur">Trouve toutes les fraises secrêtes et tu auras le dernier chiffre du code(<span id="score">0</span>/4)</div>
-    <div class="pastilles">
-      <div class="pastille" id="p-0"></div>
-      <div class="pastille" id="p-1"></div>
-      <div class="pastille" id="p-2"></div>
-      <div class="pastille" id="p-3"></div>
-    </div>
+    <div id="compteur">Trouve toutes les fraises secrêtes</div>
   </div>
 
   <!-- Fenêtre de révélation du chiffre 4 -->
@@ -109,15 +94,11 @@
         if (!etatFraises[i]) {
           etatFraises[i] = true;
           
-          // Allume la pastille correspondante
-          document.querySelector(`#p-${i}`).classList.add("trouvee");
-          
           // Vibration légère sur mobile (si supportée)
           if (navigator.vibrate) navigator.vibrate(100);
 
-          // Mise à jour du compteur
+          // Vérification du nombre total de fraises balayées
           const totalTrouve = etatFraises.filter(Boolean).length;
-          document.querySelector("#score").innerText = totalTrouve;
 
           // Si les 4 fraises ont été balayées, affiche le chiffre 4
           if (totalTrouve === 4) {
